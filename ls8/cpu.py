@@ -8,7 +8,7 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
-        self.ram = []
+        self.ram = [0] * 6
         self.pc = 0
 
     def ram_read(self, address):
@@ -76,6 +76,8 @@ class CPU:
 
         IR = []
         halted = False
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
 
         while not halted:
             instruction = self.ram[self.pc]
@@ -86,10 +88,11 @@ class CPU:
 
             elif instruction == PRN:
                 reg_num = self.ram[self.pc + 1]
-                print(self.ram[reg_num])
+                print('PRN', self.ram[reg_num])
                 self.pc += 2
 
             elif instruction == HLT:
+                print('HLT')
                 halted = True
                 self.pc += 1
 
