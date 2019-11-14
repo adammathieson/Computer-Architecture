@@ -2,14 +2,29 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+MUL = 0b10100010
+MOD = 0b10100100
+
 class CPU:
     """Main CPU class."""
+    # halted = False
 
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.bt = {
+            LDI: self.LDI,
+            PRN: self.PRN,
+            HLT: self.HLT,
+            MUL: self.MUL,
+            MOD: self.MOD
+            }
+        self.halted = False
 
     def ram_read(self, address):
         return self.ram[address]
@@ -50,6 +65,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MOD":
+            self.reg[reg_a] %= self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         else:
@@ -74,40 +91,61 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+    def LDI(self, op_a, op_b):
+        self.reg[op_a] = op_b
+        print('LDI', self.reg[op_a])
+        self.pc += 3
+
+    def MUL(self, op_a, op_b):
+        self.alu("MUL", op_a, op_b)
+        print("MUL", self.reg[op_a])
+        self.pc += 3
+
+    def PRN(self, op_a, op_b):
+        print('PRN', self.reg[op_a])
+        self.pc += 2
+
+    def HLT(self, op_a, op_b):
+        print('HLT')
+        self.halted = True
+        self.pc += 1
+
+    def MOD(self, op_a, op_b):
+        if op_b == 0:
+            print("Usage: value cannot be 0")
+        else:
+            self.alu("MOD", op_a, op_b)
+            print("MOD", self.reg[op_a])
+        self.pc += 2
 
     def run(self):
         """Run the CPU."""
-        LDI = 0b10000010
-        PRN = 0b01000111
-        HLT = 0b00000001
-        MUL = 0b10100010
 
-        halted = False
-        
-        while not halted:
+        while self.halted is False:
             instruction = self.ram[self.pc]
-            operand_a = self.ram_read(self.pc + 1)
+            op_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            if instruction == LDI:
-                self.reg[operand_a] = operand_b
-                print('LDI', self.reg[operand_a])
-                self.pc += 3
+            if instruction in self.bt:
+                self.bt[instruction](op_a, operand_b)
 
-            elif instruction == PRN:
-                reg_num = self.ram[self.pc + 1]
-                print('PRN', self.ram[reg_num])
-                self.pc += 2
+            # if instruction == LDI:
 
-            elif instruction == MUL:
-                self.alu("MUL", operand_a, operand_b)
-                print("MUL", self.reg[operand_a])
-                self.pc += 3
+            # elif instruction == PRN:
+            #     # reg_num = self.reg[o]
+            #     print('PRN', self.reg[op_a])
+                # self.pc += 2
 
-            elif instruction == HLT:
-                print('HLT')
-                halted = True
-                self.pc += 1
+            # elif instruction == MUL:
+            #     self.alu("MUL", op_a, operand_b)
+            #     print("MUL", self.reg[op_a])
+            #     self.pc += 3
+
+            # elif instruction == HLT:
+            #     print('HLT')
+            #     halted = True
+            #     self.pc += 1
 
             else:
                 print(f"Unknown instruction at index {self.pc}")
