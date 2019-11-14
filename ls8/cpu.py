@@ -103,15 +103,13 @@ class CPU:
     
     # Main commands
     def LDI(self, op_a, op_b):
-        
-        print('+++++++++++>', self.reg[self.sp], self.sp)
         self.reg[op_a] = op_b
         # print('LDI', self.reg[op_a])
         self.pc += 3
 
     def PRN(self, op_a, op_b):
         print('PRN', self.reg[op_a])
-        self.pc += 1
+        self.pc += 2
 
     def HLT(self, op_a, op_b):
         # print('HLT')
@@ -137,7 +135,7 @@ class CPU:
         self.reg[self.sp] -= 1
         val = self.reg[op_a]
         self.ram_write(val, self.reg[self.sp])
-        print("PUSH", self.ram_read(self.reg[self.sp]))
+        # print("PUSH", self.ram_read(self.reg[self.sp]))
 
         self.pc += 2
 
@@ -147,7 +145,7 @@ class CPU:
 
         self.reg[self.sp] += 1
 
-        print("POP", val, self.reg[self.sp])
+        # print("POP", val, self.reg[self.sp])
         self.pc += 2
 
 
