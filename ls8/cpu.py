@@ -7,6 +7,8 @@ PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
 MOD = 0b10100100
+POP = 0b01000110
+PUSH = 0b01000101
 
 class CPU:
     """Main CPU class."""
@@ -16,15 +18,21 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.sp = 7
         self.pc = 0
         self.bt = {
             LDI: self.LDI,
             PRN: self.PRN,
             HLT: self.HLT,
             MUL: self.MUL,
-            MOD: self.MOD
+            MOD: self.MOD,
+            POP: self.POP,
+            PUSH: self.PUSH,
             }
         self.halted = False
+
+        #TODO Setting the reg slot of the sp; does this go here? 
+        self.reg[self.sp] = 0xf4
 
     def ram_read(self, address):
         return self.ram[address]
@@ -92,24 +100,29 @@ class CPU:
 
         print()
     
+    
+    # Main commands
     def LDI(self, op_a, op_b):
+        
+        print('+++++++++++>', self.reg[self.sp], self.sp)
         self.reg[op_a] = op_b
-        print('LDI', self.reg[op_a])
-        self.pc += 3
-
-    def MUL(self, op_a, op_b):
-        self.alu("MUL", op_a, op_b)
-        print("MUL", self.reg[op_a])
+        # print('LDI', self.reg[op_a])
         self.pc += 3
 
     def PRN(self, op_a, op_b):
         print('PRN', self.reg[op_a])
-        self.pc += 2
+        self.pc += 1
 
     def HLT(self, op_a, op_b):
-        print('HLT')
+        # print('HLT')
         self.halted = True
         self.pc += 1
+
+    # alu commands
+    def MUL(self, op_a, op_b):
+        self.alu("MUL", op_a, op_b)
+        print("MUL", self.reg[op_a])
+        self.pc += 3
 
     def MOD(self, op_a, op_b):
         if op_b == 0:
@@ -119,35 +132,41 @@ class CPU:
             print("MOD", self.reg[op_a])
         self.pc += 2
 
+    # Stack access
+    def PUSH(self, op_a, op_b):
+        self.reg[self.sp] -= 1
+        val = self.reg[op_a]
+        self.ram_write(val, self.reg[self.sp])
+        print("PUSH", self.ram_read(self.reg[self.sp]))
+
+        self.pc += 2
+
+    def POP(self, op_a, op_b):
+        val = self.ram_read(self.reg[self.sp])
+        self.reg[op_a] = val
+
+        self.reg[self.sp] += 1
+
+        print("POP", val, self.reg[self.sp])
+        self.pc += 2
+
+
     def run(self):
         """Run the CPU."""
 
         while self.halted is False:
             instruction = self.ram[self.pc]
             op_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
+            op_b = self.ram_read(self.pc + 2)
 
             if instruction in self.bt:
-                self.bt[instruction](op_a, operand_b)
-
-            # if instruction == LDI:
-
-            # elif instruction == PRN:
-            #     # reg_num = self.reg[o]
-            #     print('PRN', self.reg[op_a])
-                # self.pc += 2
-
-            # elif instruction == MUL:
-            #     self.alu("MUL", op_a, operand_b)
-            #     print("MUL", self.reg[op_a])
-            #     self.pc += 3
-
-            # elif instruction == HLT:
-            #     print('HLT')
-            #     halted = True
-            #     self.pc += 1
-
+                self.bt[instruction](op_a, op_b)
             else:
                 print(f"Unknown instruction at index {self.pc}")
                 sys.exit(1)           
+
+
+
+
+
 
