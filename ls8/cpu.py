@@ -5,14 +5,17 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+ADD = 0b10100000
 MUL = 0b10100010
 MOD = 0b10100100
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
 
 class CPU:
     """Main CPU class."""
-    # halted = False
 
     def __init__(self):
         """Construct a new CPU."""
@@ -24,12 +27,17 @@ class CPU:
             LDI: self.LDI,
             PRN: self.PRN,
             HLT: self.HLT,
+            ADD: self.ADD,
             MUL: self.MUL,
             MOD: self.MOD,
             POP: self.POP,
             PUSH: self.PUSH,
+            CALL: self.CALL,
+            RET: self.RET,
+            CMP: self.CMP,
             }
         self.halted = False
+        self.fl = [0] * 8
 
         #TODO Setting the reg slot of the sp; does this go here? 
         self.reg[self.sp] = 0xf4
@@ -75,6 +83,13 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MOD":
             self.reg[reg_a] %= self.reg[reg_b]
+        elif op == "CMP":
+            if reg_a == reg_b:
+                self.fl[7] = 1
+            elif reg_a < reg_b:
+                self.fl[5] = 1
+            elif reg_a > reg_b:
+                self.fl[6] = 1
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         else:
@@ -88,7 +103,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -117,6 +132,10 @@ class CPU:
         self.pc += 1
 
     # alu commands
+    def ADD(self, op_a, op_b):
+        self.alu("ADD", op_a, op_b)
+        self.pc += 3
+
     def MUL(self, op_a, op_b):
         self.alu("MUL", op_a, op_b)
         print("MUL", self.reg[op_a])
@@ -129,6 +148,10 @@ class CPU:
             self.alu("MOD", op_a, op_b)
             print("MOD", self.reg[op_a])
         self.pc += 2
+
+    def CMP(self, op_a, op_b):
+        self.alu("CMP", op_a, op_b)
+        self.pc += 3
 
     # Stack access
     def PUSH(self, op_a, op_b):
@@ -148,6 +171,16 @@ class CPU:
         # print("POP", val, self.reg[self.sp])
         self.pc += 2
 
+    def CALL(self, op_a, op_b):
+        return_address = self.pc + 2
+        self.reg[self.sp] -= 1
+        self.ram_write(return_address, self.reg[self.sp])
+
+        self.pc = self.reg[op_a]
+
+    def RET(self, op_a, op_b):
+        self.pc = self.ram_read(self.reg[self.sp])
+        self.reg[self.sp] += 1
 
     def run(self):
         """Run the CPU."""
