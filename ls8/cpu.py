@@ -14,6 +14,8 @@ AND = 0b10101000
 OR = 0b10101010
 XOR = 0b10101011
 NOT = 0b01101001
+SHL = 0b10101100
+SHR = 0b10101101
 # stack
 POP = 0b01000110
 PUSH = 0b01000101
@@ -46,6 +48,8 @@ class CPU:
             OR: self.OR,
             XOR: self.XOR,
             NOT: self.NOT,
+            SHL: self.SHL,
+            SHR: self.SHR,
             POP: self.POP,
             PUSH: self.PUSH,
             CALL: self.CALL,
@@ -118,6 +122,10 @@ class CPU:
             self.reg[reg_a] ^= self.reg[reg_b]
         elif op == "NOT":
             ~self.reg[reg_a]
+        elif op == "SHL":
+            self.reg[reg_a] << self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] >> self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -195,6 +203,14 @@ class CPU:
     def NOT(self, op_a, op_b):
         self.alu("NOT", op_a, op_b)
         self.pc += 2
+
+    def SHL(self, op_a, op_b):
+        self.alu("SHL", op_a, op_b)
+        self.pc += 3
+
+    def SHR(self, op_a, op_b):
+        self.alu("SHR", op_a, op_b)
+        self.pc += 3
 
     # Stack access
     def PUSH(self, op_a, op_b):
