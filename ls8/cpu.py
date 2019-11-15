@@ -11,6 +11,7 @@ MUL = 0b10100010
 MOD = 0b10100100
 CMP = 0b10100111
 AND = 0b10101000
+OR = 0b10101010
 # stack
 POP = 0b01000110
 PUSH = 0b01000101
@@ -40,6 +41,7 @@ class CPU:
             MOD: self.MOD,
             CMP: self.CMP,
             AND: self.AND,
+            OR: self.OR,
             POP: self.POP,
             PUSH: self.PUSH,
             CALL: self.CALL,
@@ -106,6 +108,8 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "AND":
             self.reg[reg_a] &= self.reg[reg_b]
+        elif op == "OR":
+            self.reg[reg_a] |= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -170,6 +174,10 @@ class CPU:
 
     def AND(self, op_a, op_b):
         self.alu("AND", op_a, op_b)
+        self.pc += 3
+
+    def OR(self, op_a, op_b):
+        self.alu("OR", op_a, op_b)
         self.pc += 3
 
     # Stack access
