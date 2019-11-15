@@ -13,6 +13,7 @@ CMP = 0b10100111
 AND = 0b10101000
 OR = 0b10101010
 XOR = 0b10101011
+NOT = 0b01101001
 # stack
 POP = 0b01000110
 PUSH = 0b01000101
@@ -44,6 +45,7 @@ class CPU:
             AND: self.AND,
             OR: self.OR,
             XOR: self.XOR,
+            NOT: self.NOT,
             POP: self.POP,
             PUSH: self.PUSH,
             CALL: self.CALL,
@@ -114,6 +116,8 @@ class CPU:
             self.reg[reg_a] |= self.reg[reg_b]
         elif op == "XOR":
             self.reg[reg_a] ^= self.reg[reg_b]
+        elif op == "NOT":
+            ~self.reg[reg_a]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -187,6 +191,10 @@ class CPU:
     def XOR(self, op_a, op_b):
         self.alu("XOR", op_a, op_b)
         self.pc += 3
+
+    def NOT(self, op_a, op_b):
+        self.alu("NOT", op_a, op_b)
+        self.pc += 2
 
     # Stack access
     def PUSH(self, op_a, op_b):
