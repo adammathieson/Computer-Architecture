@@ -5,17 +5,22 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+# alu
 ADD = 0b10100000
 MUL = 0b10100010
 MOD = 0b10100100
+CMP = 0b10100111
+AND = 0b10101000
+# stack
 POP = 0b01000110
 PUSH = 0b01000101
 CALL = 0b01010000
 RET = 0b00010001
-CMP = 0b10100111
+# jumps
 JMP = 0b01010100
 JEQ = 0b01010101
 JNE = 0b01010110
+
 
 class CPU:
     """Main CPU class."""
@@ -33,11 +38,12 @@ class CPU:
             ADD: self.ADD,
             MUL: self.MUL,
             MOD: self.MOD,
+            CMP: self.CMP,
+            AND: self.AND,
             POP: self.POP,
             PUSH: self.PUSH,
             CALL: self.CALL,
             RET: self.RET,
-            CMP: self.CMP,
             JMP: self.JMP,
             JEQ: self.JEQ,
             JNE: self.JNE,
@@ -98,6 +104,8 @@ class CPU:
                 self.fl[6] = 1
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "AND":
+            self.reg[reg_a] &= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -160,6 +168,10 @@ class CPU:
         self.alu("CMP", self.reg[op_a], self.reg[op_b])
         self.pc += 3
 
+    def AND(self, op_a, op_b):
+        self.alu("AND", op_a, op_b)
+        self.pc += 3
+
     # Stack access
     def PUSH(self, op_a, op_b):
         self.reg[self.sp] -= 1
@@ -185,6 +197,7 @@ class CPU:
 
         self.pc = self.reg[op_a]
 
+    # Jumps
     def RET(self, op_a, op_b):
         self.pc = self.ram_read(self.reg[self.sp])
         self.reg[self.sp] += 1
